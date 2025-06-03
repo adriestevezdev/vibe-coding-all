@@ -72,11 +72,11 @@ async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "service": "vibe-coding-api"}
 
-# TODO: Import and include routers here
-# Example of how to include routers:
-# from app.api import auth
-# app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
-# 
+# Import and include routers
+from app.routers import auth
+app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
+
+# TODO: Add more routers as needed
 # from app.api import users, projects, ai
 # app.include_router(users.router, prefix="/api/users", tags=["users"])
 # app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
