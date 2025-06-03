@@ -2,6 +2,7 @@
 from typing import List, Optional
 from uuid import UUID
 import re
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import update, delete
@@ -232,6 +233,10 @@ async def update_prompt(
         # Sanitizar el texto del prompt si está presente
         if "prompt_text" in update_data and update_data["prompt_text"]:
             update_data["prompt_text"] = sanitize_prompt_text(update_data["prompt_text"])
+        
+        # Si se está actualizando el contenido generado, establecer generated_at
+        if "generated_content" in update_data and update_data["generated_content"]:
+            update_data["generated_at"] = datetime.now(timezone.utc)
         
         if update_data:
             await db.execute(

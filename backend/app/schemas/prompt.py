@@ -69,6 +69,7 @@ class PromptInDBBase(PromptBase):
     project_id: uuid.UUID
     user_id: uuid.UUID
     generated_content: Optional[str] = None
+    generated_at: Optional[datetime] = None
     status: str = "pending"
     created_at: datetime
     updated_at: datetime

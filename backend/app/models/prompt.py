@@ -19,6 +19,7 @@ class Prompt(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     prompt_text = Column(Text, nullable=False)
     generated_content = Column(Text, nullable=True)
+    generated_at = Column(DateTime(timezone=True), nullable=True)
     prompt_type = Column(String(50), nullable=True)
     status = Column(String(50), default="pending")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
