@@ -1,6 +1,7 @@
 """Prompt service module."""
 from typing import List, Optional
 from uuid import UUID
+import re
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import update, delete
@@ -60,6 +61,27 @@ async def validate_project_ownership(db: AsyncSession, project_id: UUID, user_id
         )
 
 
+def sanitize_prompt_text(text: str) -> str:
+    """Sanitiza el texto del prompt eliminando caracteres no deseados.
+    
+    Args:
+        text: Texto del prompt
+        
+    Returns:
+        Texto sanitizado
+    """
+    if not text:
+        return ""
+        
+    # Eliminar espacios múltiples y recortar
+    sanitized = re.sub(r'\s+', ' ', text).strip()
+    
+    # Eliminar caracteres especiales no deseados
+    sanitized = re.sub(r'[<>{}\[\]\\^~]', '', sanitized)
+    
+    return sanitized
+
+
 async def create_prompt(db: AsyncSession, prompt_in: PromptCreate, user_id: UUID) -> Prompt:
     """Create a new prompt.
     
@@ -75,9 +97,13 @@ async def create_prompt(db: AsyncSession, prompt_in: PromptCreate, user_id: UUID
         # Validate project ownership
         await validate_project_ownership(db, prompt_in.project_id, user_id)
         
+        # Sanitizar el texto del prompt
+        prompt_data = prompt_in.model_dump()
+        prompt_data["prompt_text"] = sanitize_prompt_text(prompt_data["prompt_text"])
+        
         # Create prompt object
         db_prompt = Prompt(
-            **prompt_in.model_dump(),
+            **prompt_data,
             user_id=user_id
         )
         
@@ -202,6 +228,10 @@ async def update_prompt(
         
         # Update prompt
         update_data = prompt_in.model_dump(exclude_unset=True)
+        
+        # Sanitizar el texto del prompt si está presente
+        if "prompt_text" in update_data and update_data["prompt_text"]:
+            update_data["prompt_text"] = sanitize_prompt_text(update_data["prompt_text"])
         
         if update_data:
             await db.execute(
