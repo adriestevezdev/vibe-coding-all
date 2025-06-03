@@ -1,0 +1,75 @@
+services:
+  # Frontend - Next.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vibe-coding-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    env_file:
+      - ./frontend/.env.local
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    networks:
+      - vibe-coding-network
+    depends_on:
+      - backend
+
+  # Backend - FastAPI
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vibe-coding-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/vibe_coding
+      - PYTHONUNBUFFERED=1
+    networks:
+      - vibe-coding-network
+    depends_on:
+      - db
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Database - PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: vibe-coding-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=vibe_coding
+    networks:
+      - vibe-coding-network
+
+  # Database Admin - Adminer
+  adminer:
+    image: adminer:latest
+    container_name: vibe-coding-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - vibe-coding-network
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+
+networks:
+  vibe-coding-network:
+    driver: bridge
