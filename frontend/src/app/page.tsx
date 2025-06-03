@@ -13,7 +13,7 @@ export default function Home() {
           <a href="#" className="hover:text-primary">Contact</a>
         </nav>
         <a 
-          href="#" 
+          href="/login" 
           className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-hover transition-colors"
         >
           Get Started
@@ -28,7 +28,7 @@ export default function Home() {
             Project Blueprint uses AI to convert your project concepts into comprehensive, well-organized documentation, saving you time and effort.
           </p>
           <a 
-            href="#" 
+            href="/login" 
             className="bg-primary text-white px-6 py-3 rounded-md hover:bg-primary-hover transition-colors text-lg font-medium"
           >
             Get Started
@@ -89,10 +89,10 @@ export default function Home() {
             Start using Project Blueprint today and experience the power of AI-driven project planning.
           </p>
           <a 
-            href="#" 
-            className="bg-primary text-white px-6 py-3 rounded-md hover:bg-primary-hover transition-colors text-lg font-medium"
+            href="/login" 
+            className="bg-white text-primary px-6 py-3 rounded-md hover:bg-gray-100 transition-colors text-lg font-medium"
           >
-            Get Started
+            Sign Up Now
           </a>
         </div>
       </section>
