@@ -4,6 +4,17 @@
 import { Project, ProjectCreate, ProjectUpdate } from '../types/project';
 import { Prompt, PromptCreate, PromptUpdate } from '../types/prompt';
 
+/**
+ * PromptVersion interface
+ */
+export interface PromptVersion {
+  id: string;
+  version_number: number;
+  prompt_text: string;
+  generated_content: string | null;
+  created_at: string;
+}
+
 // Base API URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -176,6 +187,37 @@ export const promptApi = {
    */
   getSharedPrompt: async (token: string): Promise<Prompt> => {
     const response = await fetch(`${API_URL}/share/${token}`);
+    return handleResponse<Prompt>(response);
+  },
+
+  /**
+   * Get all versions of a prompt
+   */
+  getPromptVersions: async (projectId: string, promptId: string): Promise<PromptVersion[]> => {
+    const response = await fetch(`${API_URL}/projects/${projectId}/prompts/${promptId}/versions`, {
+      headers: createHeaders(),
+    });
+    return handleResponse<PromptVersion[]>(response);
+  },
+
+  /**
+   * Get a specific version of a prompt
+   */
+  getPromptVersion: async (projectId: string, promptId: string, versionNumber: number): Promise<PromptVersion> => {
+    const response = await fetch(`${API_URL}/projects/${projectId}/prompts/${promptId}/versions/${versionNumber}`, {
+      headers: createHeaders(),
+    });
+    return handleResponse<PromptVersion>(response);
+  },
+
+  /**
+   * Restore a prompt to a specific version
+   */
+  restorePromptVersion: async (projectId: string, promptId: string, versionNumber: number): Promise<Prompt> => {
+    const response = await fetch(`${API_URL}/projects/${projectId}/prompts/${promptId}/versions/${versionNumber}/restore`, {
+      method: 'POST',
+      headers: createHeaders(),
+    });
     return handleResponse<Prompt>(response);
   },
 };

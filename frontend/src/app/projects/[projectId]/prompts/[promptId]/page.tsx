@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '../../../../../../services/api';
 import { Prompt } from '../../../../../../types/prompt';
 import PromptView from '../../../../../components/PromptView';
+import PromptHistory from '../../../../../components/PromptHistory';
 
 export default function PromptDetailPage() {
   const params = useParams();
@@ -16,23 +17,28 @@ export default function PromptDetailPage() {
   const projectId = params.projectId as string;
   const promptId = params.promptId as string;
 
-  useEffect(() => {
-    const fetchPrompt = async () => {
-      try {
-        setLoading(true);
-        const promptData = await api.prompts.getPrompt(projectId, promptId);
-        setPrompt(promptData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load prompt');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPrompt = async () => {
+    try {
+      setLoading(true);
+      const promptData = await api.prompts.getPrompt(projectId, promptId);
+      setPrompt(promptData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load prompt');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (projectId && promptId) {
       fetchPrompt();
     }
-  }, [projectId, promptId]);
+  }, [projectId, promptId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleVersionRestore = () => {
+    // Refresh the prompt data after version restore
+    fetchPrompt();
+  };
 
   if (loading) {
     return (
@@ -87,7 +93,14 @@ export default function PromptDetailPage() {
         <h1 className="text-3xl font-bold text-gray-900">Prompt Details</h1>
       </div>
       
-      <PromptView prompt={prompt} />
+      <div className="space-y-6">
+        <PromptView prompt={prompt} />
+        <PromptHistory 
+          projectId={projectId} 
+          promptId={promptId} 
+          onVersionRestore={handleVersionRestore}
+        />
+      </div>
     </div>
   );
 }

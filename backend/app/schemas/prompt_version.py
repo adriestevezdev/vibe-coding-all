@@ -29,3 +29,14 @@ class PromptVersionInDBBase(PromptVersionBase):
 class PromptVersion(PromptVersionInDBBase):
     """Schema for PromptVersion response."""
     pass
+
+
+class PromptVersionRead(BaseModel):
+    """Schema for reading PromptVersion."""
+    id: uuid.UUID
+    version_number: int
+    prompt_text: str
+    generated_content: Optional[str] = None
+    created_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)

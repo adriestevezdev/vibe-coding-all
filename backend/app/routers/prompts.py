@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.prompt import Prompt
 from app.schemas.prompt import PromptCreate, PromptUpdate, Prompt as PromptSchema
+from app.schemas.prompt_version import PromptVersionRead
 from app.services import prompt as prompt_service
 from app.services.openai import openai_service
 from app.core.deps import get_current_user
@@ -323,4 +324,99 @@ async def create_share_link(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create share link"
+        )
+
+
+@router.get("/projects/{project_id}/prompts/{prompt_id}/versions", response_model=List[PromptVersionRead])
+async def get_prompt_versions(
+    project_id: UUID,
+    prompt_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all versions of a prompt."""
+    try:
+        # Verify prompt belongs to the project
+        prompt = await prompt_service.get_prompt(db, prompt_id, current_user.id)
+        if prompt.project_id != project_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Prompt not found in this project"
+            )
+            
+        return await prompt_service.get_prompt_versions(db, prompt_id, current_user.id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting prompt versions: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get prompt versions"
+        )
+
+
+@router.get("/projects/{project_id}/prompts/{prompt_id}/versions/{version_number}", response_model=PromptVersionRead)
+async def get_prompt_version(
+    project_id: UUID,
+    prompt_id: UUID,
+    version_number: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get a specific version of a prompt."""
+    try:
+        # Verify prompt belongs to the project
+        prompt = await prompt_service.get_prompt(db, prompt_id, current_user.id)
+        if prompt.project_id != project_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Prompt not found in this project"
+            )
+            
+        return await prompt_service.get_prompt_version(db, prompt_id, version_number, current_user.id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting prompt version: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get prompt version"
+        )
+
+
+@router.post("/projects/{project_id}/prompts/{prompt_id}/versions/{version_number}/restore", response_model=PromptSchema)
+async def restore_prompt_version(
+    project_id: UUID,
+    prompt_id: UUID,
+    version_number: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Restore a prompt to a specific version."""
+    try:
+        # Verify prompt belongs to the project
+        prompt = await prompt_service.get_prompt(db, prompt_id, current_user.id)
+        if prompt.project_id != project_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Prompt not found in this project"
+            )
+            
+        # Get the version to restore
+        version = await prompt_service.get_prompt_version(db, prompt_id, version_number, current_user.id)
+        
+        # Update the prompt with the version's content
+        prompt_update = PromptUpdate(
+            prompt_text=version.prompt_text,
+            generated_content=version.generated_content
+        )
+        
+        return await prompt_service.update_prompt(db, prompt_id, prompt_update, current_user.id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error restoring prompt version: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to restore prompt version"
         )
