@@ -159,6 +159,25 @@ export const promptApi = {
     });
     return handleResponse<Prompt>(response);
   },
+
+  /**
+   * Create a share link for a prompt
+   */
+  createShareLink: async (promptId: string): Promise<{share_token: string, share_url: string}> => {
+    const response = await fetch(`${API_URL}/prompts/${promptId}/share`, {
+      method: 'POST',
+      headers: createHeaders(),
+    });
+    return handleResponse<{share_token: string, share_url: string}>(response);
+  },
+
+  /**
+   * Get a shared prompt by token (public access)
+   */
+  getSharedPrompt: async (token: string): Promise<Prompt> => {
+    const response = await fetch(`${API_URL}/share/${token}`);
+    return handleResponse<Prompt>(response);
+  },
 };
 
 /**

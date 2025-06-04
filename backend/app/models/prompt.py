@@ -1,6 +1,6 @@
 """Prompt model for the application."""
 from typing import List, Optional
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -22,6 +22,7 @@ class Prompt(Base):
     generated_at = Column(DateTime(timezone=True), nullable=True)
     prompt_type = Column(String(50), nullable=True)
     status = Column(String(50), default="pending")
+    share_token = Column(String(255), nullable=True, unique=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     

@@ -2,6 +2,7 @@
 from typing import List, Optional
 from uuid import UUID
 import re
+import uuid
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -294,3 +295,73 @@ async def delete_prompt(db: AsyncSession, prompt_id: UUID, user_id: UUID) -> Pro
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete prompt"
         )
+
+
+async def create_share_link(db: AsyncSession, prompt_id: UUID, user_id: UUID) -> str:
+    """Create a share link for a prompt.
+    
+    Args:
+        db: Database session
+        prompt_id: Prompt ID
+        user_id: User ID
+        
+    Returns:
+        Share token
+        
+    Raises:
+        HTTPException: If prompt not found or user is not the owner
+    """
+    try:
+        # Get prompt and validate ownership
+        prompt = await get_prompt(db, prompt_id, user_id)
+        
+        # Generate unique share token if not exists
+        if not prompt.share_token:
+            share_token = str(uuid.uuid4())
+            
+            # Update prompt with share token
+            await db.execute(
+                update(Prompt)
+                .where(Prompt.id == prompt_id)
+                .values(share_token=share_token)
+            )
+            await db.commit()
+            await db.refresh(prompt)
+            
+            return share_token
+        
+        return prompt.share_token
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating share link: {e}")
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create share link"
+        )
+
+
+async def get_shared_prompt(db: AsyncSession, share_token: str) -> Optional[Prompt]:
+    """Get a prompt by share token without authentication.
+    
+    Args:
+        db: Database session
+        share_token: Share token
+        
+    Returns:
+        Prompt if found, None otherwise
+    """
+    try:
+        # Get prompt by share token
+        result = await db.execute(
+            select(Prompt).where(
+                Prompt.share_token == share_token
+            )
+        )
+        prompt = result.scalars().first()
+        
+        return prompt
+    except Exception as e:
+        logger.error(f"Error getting shared prompt: {e}")
+        return None

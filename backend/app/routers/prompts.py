@@ -293,3 +293,34 @@ async def get_prompt_status(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get prompt status"
         )
+
+
+@router.post("/prompts/{prompt_id}/share", response_model=dict)
+async def create_share_link(
+    prompt_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Create a share link for a prompt.
+    
+    Returns:
+        Dictionary with the share URL
+    """
+    try:
+        # Create share link
+        share_token = await prompt_service.create_share_link(db, prompt_id, current_user.id)
+        
+        # Return the share URL
+        return {
+            "share_token": share_token,
+            "share_url": f"/share/{share_token}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating share link: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create share link"
+        )

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Prompt } from '../../types/prompt';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
+import api from '../../services/api';
 
 interface PromptViewProps {
   prompt: Prompt;
@@ -11,6 +12,8 @@ interface PromptViewProps {
 
 export default function PromptView({ prompt }: PromptViewProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -140,6 +143,26 @@ ${prompt.generated_content || 'No content generated yet.'}
     pdf.save(`prompt-${prompt.id}.pdf`);
   };
 
+  const sharePrompt = async () => {
+    if (isSharing) return;
+    
+    setIsSharing(true);
+    try {
+      const result = await api.prompts.createShareLink(prompt.id);
+      const fullUrl = `${window.location.origin}${result.share_url}`;
+      setShareUrl(fullUrl);
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(fullUrl);
+      alert('Share link copied to clipboard!');
+    } catch (error) {
+      console.error('Error creating share link:', error);
+      alert('Failed to create share link. Please try again.');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   return (
     <div className="bg-white shadow-lg rounded-lg overflow-hidden">
       {/* Header with export buttons */}
@@ -160,6 +183,13 @@ ${prompt.generated_content || 'No content generated yet.'}
           </div>
           
           <div className="flex space-x-2">
+            <button
+              onClick={sharePrompt}
+              disabled={isSharing}
+              className="bg-purple-500 hover:bg-purple-700 disabled:bg-purple-300 text-white text-sm font-bold py-2 px-3 rounded"
+            >
+              {isSharing ? 'Creating...' : 'Share'}
+            </button>
             <button
               onClick={exportAsJSON}
               className="bg-blue-500 hover:bg-blue-700 text-white text-sm font-bold py-2 px-3 rounded"
