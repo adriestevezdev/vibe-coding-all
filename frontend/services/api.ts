@@ -223,11 +223,99 @@ export const promptApi = {
 };
 
 /**
+ * Payment API types
+ */
+export interface CheckoutRequest {
+  product_id: string;
+  success_url?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface CheckoutResponse {
+  checkout_id: string;
+  checkout_url: string;
+  status: string;
+}
+
+export interface UserPremiumStatus {
+  user_id: string;
+  email: string;
+  is_premium: boolean;
+  premium_features: {
+    unlimited_prompts: boolean;
+    advanced_exports: boolean;
+    priority_support: boolean;
+  };
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  currency: string;
+  interval: string;
+  features: string[];
+}
+
+export interface ProductsResponse {
+  products: Product[];
+}
+
+/**
+ * Payment API functions
+ */
+export const paymentApi = {
+  /**
+   * Create a checkout session
+   */
+  createCheckoutSession: async (request: CheckoutRequest): Promise<CheckoutResponse> => {
+    const response = await fetch(`${API_URL}/payments/create-checkout-session`, {
+      method: 'POST',
+      headers: createHeaders(),
+      body: JSON.stringify(request),
+    });
+    return handleResponse<CheckoutResponse>(response);
+  },
+
+  /**
+   * Get checkout details
+   */
+  getCheckoutDetails: async (checkoutId: string): Promise<any> => {
+    const response = await fetch(`${API_URL}/payments/checkout/${checkoutId}`, {
+      headers: createHeaders(),
+    });
+    return handleResponse<any>(response);
+  },
+
+  /**
+   * Get user premium status
+   */
+  getUserPremiumStatus: async (): Promise<UserPremiumStatus> => {
+    const response = await fetch(`${API_URL}/payments/user/premium-status`, {
+      headers: createHeaders(),
+    });
+    return handleResponse<UserPremiumStatus>(response);
+  },
+
+  /**
+   * Get available products
+   */
+  getProducts: async (): Promise<ProductsResponse> => {
+    const response = await fetch(`${API_URL}/payments/products`, {
+      headers: createHeaders(),
+    });
+    return handleResponse<ProductsResponse>(response);
+  },
+};
+
+/**
  * Combined API service
  */
 const api = {
   projects: projectApi,
   prompts: promptApi,
+  payments: paymentApi,
 };
 
 export default api;

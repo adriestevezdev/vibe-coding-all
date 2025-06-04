@@ -10,6 +10,7 @@ class UserBase(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     full_name: Optional[str] = Field(None, description="User full name")
     is_active: bool = Field(True, description="Whether the user is active")
+    is_premium: bool = Field(False, description="Whether the user has premium subscription")
 
 
 class UserCreate(UserBase):
@@ -40,6 +41,7 @@ class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     password: Optional[str] = None
     is_active: Optional[bool] = None
+    is_premium: Optional[bool] = None
 
 
 class UserInDBBase(UserBase):

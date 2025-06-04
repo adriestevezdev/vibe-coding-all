@@ -26,6 +26,7 @@ export interface User {
   email: string;
   full_name?: string;
   is_active: boolean;
+  is_premium?: boolean;
 }
 
 // Auth API

@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4")
     
+    # Polar Payments
+    POLAR_ACCESS_TOKEN: Optional[str] = os.getenv("POLAR_ACCESS_TOKEN")
+    POLAR_WEBHOOK_SECRET: Optional[str] = os.getenv("POLAR_WEBHOOK_SECRET")
+    POLAR_ORGANIZATION_ID: Optional[str] = os.getenv("POLAR_ORGANIZATION_ID")
+    POLAR_SERVER: str = os.getenv("POLAR_SERVER", "sandbox")  # sandbox or production
+    
     # CORS
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
